@@ -1,12 +1,7 @@
-var CACHE = 'opsmate-v1';
+var CACHE_NAME = 'opsmate-v3';
 
 self.addEventListener('install', function(e) {
   self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE).then(function(cache) {
-      return cache.addAll(['/', '/index.html', '/manifest.json']);
-    })
-  );
 });
 
 self.addEventListener('activate', function(e) {
@@ -14,9 +9,10 @@ self.addEventListener('activate', function(e) {
 });
 
 self.addEventListener('fetch', function(e) {
+  if (e.request.method !== 'GET') return;
   e.respondWith(
-    caches.match(e.request).then(function(r) {
-      return r || fetch(e.request);
+    fetch(e.request).catch(function() {
+      return caches.match('/index.html');
     })
   );
 });
