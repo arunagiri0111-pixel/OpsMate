@@ -5968,7 +5968,6 @@ var _pwaInstalled = _isStandalone;
 
 // ── Android/Chrome/Edge: capture native install prompt ──
 window.addEventListener('beforeinstallprompt', function(e) {
-  e.preventDefault();
   deferredPrompt = e;
   if (_pwaInstalled) return;
   var dismissed = parseInt(localStorage.getItem('pwa_dismissed') || '0');
