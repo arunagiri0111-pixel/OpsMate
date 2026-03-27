@@ -1,12 +1,11 @@
 // ================================================================
-// OpsMate ERP — Service Worker
-// Strategy: Network-first with cache fallback (stale-while-revalidate)
+// OpsMate ERP — Clean Service Worker (Production Ready)
 // ================================================================
 
-var CACHE_NAME = 'opsmate-v3';
+const CACHE_NAME = 'opsmate-v4';
 
-// Files to pre-cache on install
-var PRECACHE_URLS = [
+// Files to cache (App Shell)
+const PRECACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
@@ -14,100 +13,84 @@ var PRECACHE_URLS = [
   '/icons/icon-512.png'
 ];
 
-// ── Install: pre-cache app shell ──
-self.addEventListener('install', function(event) {
+// ── INSTALL ──
+self.addEventListener('install', (event) => {
   console.log('[SW] Installing...');
+
   event.waitUntil(
-    caches.open(CACHE_NAME).then(function(cache) {
-      console.log('[SW] Pre-caching app shell');
-      return cache.addAll(PRECACHE_URLS).catch(function(err) {
-        // Don't fail install if some resources can't be cached
-        console.warn('[SW] Pre-cache partial fail (non-fatal):', err.message);
-      });
-    }).then(function() {
-      return self.skipWaiting(); // Activate immediately
-    })
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        return cache.addAll(PRECACHE_URLS);
+      })
+      .then(() => self.skipWaiting())
   );
 });
 
-// ── Activate: clean old caches, take control ──
-self.addEventListener('activate', function(event) {
+// ── ACTIVATE ──
+self.addEventListener('activate', (event) => {
   console.log('[SW] Activating...');
+
   event.waitUntil(
-    caches.keys().then(function(names) {
+    caches.keys().then((keys) => {
       return Promise.all(
-        names.filter(function(name) { return name !== CACHE_NAME; })
-             .map(function(name) {
-               console.log('[SW] Deleting old cache:', name);
-               return caches.delete(name);
-             })
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
       );
-    }).then(function() {
-      return self.clients.claim(); // Take control of all pages immediately
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
-// ── Fetch: network-first, fall back to cache ──
-self.addEventListener('fetch', function(event) {
-  var request = event.request;
+// ── FETCH ──
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
 
-  // Skip non-GET requests (POST, etc.)
+  // Ignore non-GET requests
   if (request.method !== 'GET') return;
 
-  // Skip Firebase/Firestore API calls — never cache these
-  if (request.url.indexOf('firestore.googleapis.com') !== -1) return;
-  if (request.url.indexOf('identitytoolkit.googleapis.com') !== -1) return;
-  if (request.url.indexOf('securetoken.googleapis.com') !== -1) return;
+  // Ignore Firebase/API calls
+  if (
+    request.url.includes('firestore.googleapis.com') ||
+    request.url.includes('identitytoolkit.googleapis.com') ||
+    request.url.includes('securetoken.googleapis.com')
+  ) {
+    return;
+  }
 
-  // For navigation requests (HTML pages): network-first
+  // HTML navigation → network first
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request).then(function(response) {
-        // Cache the fresh HTML
-        var clone = response.clone();
-        caches.open(CACHE_NAME).then(function(cache) { cache.put(request, clone); });
-        return response;
-      }).catch(function() {
-        // Offline: serve from cache
-        return caches.match(request).then(function(cached) {
-          return cached || caches.match('./index.html');
-        });
-      })
-    );
-    return;
-  }
-
-  // For CDN resources (fonts, Chart.js): cache-first (they rarely change)
-  if (request.url.indexOf('cdnjs.cloudflare.com') !== -1 ||
-      request.url.indexOf('fonts.googleapis.com') !== -1 ||
-      request.url.indexOf('fonts.gstatic.com') !== -1 ||
-      request.url.indexOf('gstatic.com/firebasejs') !== -1) {
-    event.respondWith(
-      caches.match(request).then(function(cached) {
-        if (cached) return cached;
-        return fetch(request).then(function(response) {
-          if (response && response.status === 200) {
-            var clone = response.clone();
-            caches.open(CACHE_NAME).then(function(cache) { cache.put(request, clone); });
-          }
+      fetch(request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, clone);
+          });
           return response;
-        });
-      })
+        })
+        .catch(() => {
+          return caches.match('/index.html');
+        })
     );
     return;
   }
 
-  // For everything else: network-first with cache fallback
+  // Static files → cache first
   event.respondWith(
-    fetch(request).then(function(response) {
-      if (response && response.status === 200) {
-        var clone = response.clone();
-        caches.open(CACHE_NAME).then(function(cache) { cache.put(request, clone); });
-      }
-      return response;
-    }).catch(function() {
-      return caches.match(request);
+    caches.match(request).then((cached) => {
+      if (cached) return cached;
+
+      return fetch(request).then((response) => {
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, clone);
+          });
+        }
+        return response;
+      });
     })
   );
 });
