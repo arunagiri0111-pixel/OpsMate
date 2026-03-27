@@ -5914,7 +5914,7 @@ var _isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
 // ── Register real Service Worker (not a blob URL) ──
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+    navigator.serviceWorker.register('/sw.js')
       .then(function(reg) {
         console.log('[PWA] Service Worker registered \u2713 scope:', reg.scope);
       })
