@@ -7,7 +7,7 @@ var CACHE_NAME = 'opsmate-v3';
 
 // Files to pre-cache on install
 var PRECACHE_URLS = [
-  './',
+  '/',
   './index.html',
   './manifest.json',
   './icons/icon-192.png',
