@@ -11,6 +11,8 @@
 <meta name="application-name" content="OpsMate ERP">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%236366F1'/><text y='.9em' font-size='75' x='12'>📊</text></svg>">
+<!-- Firebase config: loaded from config.js (not committed). See .env.example -->
+<script src="./config.js" onerror="console.warn('[Config] config.js not found — Firebase config must be set via window.firebaseConfig before init')"></script>
 
 <!-- PWA: iOS Safari (required for Add to Home Screen) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -826,6 +828,31 @@ textarea.form-input{resize:vertical;min-height:72px;}
   .toast-container{bottom:72px;right:10px;left:10px;}
   .toast{min-width:unset;max-width:100%;}
   input.form-input, select.form-input, textarea.form-input{font-size:16px !important;}
+  /* MOB-02: minimum 44px touch targets on mobile */
+  .btn{min-height:44px;padding:10px 16px;}
+  .btn.btn-sm{min-height:36px;padding:6px 12px;}
+  .btn.btn-xs{min-height:32px;padding:4px 10px;}
+  .kebab-btn{width:44px;height:44px;}
+  .nav-item{padding:12px 14px;}
+  .header-btn{width:44px;height:44px;}
+  .mobile-icon-btn{width:44px;height:44px;}
+  /* MOB-04: prevent keyboard from pushing modal off-screen on iOS */
+  .modal{
+    max-height:calc(100vh - env(safe-area-inset-top) - 20px);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  /* MOB-06: FAB must clear home indicator on iPhone X+ */
+  #globalFab{bottom:calc(24px + env(safe-area-inset-bottom));}
+  #fabSheet{bottom:0;}
+  /* MOB-05: ensure all tables scroll horizontally */
+  .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;}
+  table{min-width:520px;}
+}
+
+/* MOB-03: prevent iOS Safari auto-zoom on input focus */
+@supports (-webkit-touch-callout: none){
+  input, select, textarea{font-size:16px !important;}
 }
 
 /* ================================================================
@@ -1207,10 +1234,23 @@ textarea.form-input{resize:vertical;min-height:72px;}
       <span class="mobile-header-title" id="mobileHeaderTitle">Dashboard</span>
     </div>
     <div class="mobile-header-actions">
+      <!-- MOB-08: search icon expands full-width search bar on mobile -->
+      <button class="mobile-icon-btn" onclick="toggleMobileSearch()" id="mobileSearchBtn" title="Search">🔍</button>
       <button class="mobile-icon-btn" onclick="toggleNotifPanel()">🔔</button>
       <button class="mobile-icon-btn" onclick="toggleDarkMode()">🌙</button>
     </div>
   </header>
+  <!-- MOB-08: expandable mobile search bar (hidden by default) -->
+  <div id="mobileSearchBar" style="display:none;padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:52px;z-index:149;">
+    <div class="search-bar" style="max-width:100%;">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="mobileSearchInput" placeholder="Search products, customers, sales…"
+        style="font-size:16px;"
+        oninput="if(this.value.length>2)globalSearch(this.value)"
+        onkeydown="if(event.key==='Escape')toggleMobileSearch();if(event.key==='Enter')globalSearch(this.value)">
+      <button onclick="toggleMobileSearch()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem;padding:0 2px;">✕</button>
+    </div>
+  </div>
 
   <!-- DESKTOP HEADER (hidden on mobile) -->
   <header class="header">
@@ -1345,15 +1385,9 @@ const CONFIG = { appName:'OpsMate ERP', currency:'\u20b9' };
 // Firebase instances (initialised in window.onload)
 let auth, db;
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAhKHeg454v6ebWDAEr0NoL7gAu7hkiP7U",
-  authDomain: "opsmate-erp-f64fb.firebaseapp.com",
-  projectId: "opsmate-erp-f64fb",
-  storageBucket: "opsmate-erp-f64fb.firebasestorage.app",
-  messagingSenderId: "574895876230",
-  appId: "1:574895876230:web:dcccb6f57736e5cc054907",
-  measurementId: "G-17Q7J30T7L"
-};
+// Firebase config is loaded from config.js (see .env.example).
+// window.firebaseConfig is set by config.js before this script runs.
+const firebaseConfig = window.firebaseConfig || {};
 
 // ===== APP STATE =====
 let APP = {
@@ -1379,7 +1413,12 @@ let LS = _emptyStore();
 
 // ===== UTILS =====
 const $ = id => document.getElementById(id);
-const fmt = n => CONFIG.currency + Number(n||0).toLocaleString('en-IN');
+// UX-06 FIX: handle null/undefined/NaN and use Indian number formatting with decimals
+function fmt(n){
+  const num = parseFloat(n);
+  if(isNaN(num)) return CONFIG.currency + '0';
+  return CONFIG.currency + num.toLocaleString('en-IN', {minimumFractionDigits:0, maximumFractionDigits:2});
+}
 // XSS Sanitizer — SEC-01 fix
 function sanitize(str){
   return String(str||'')
@@ -1389,16 +1428,22 @@ function sanitize(str){
     .replace(/"/g,'&quot;')
     .replace(/'/g,'&#39;');
 }
-// fmtDate: Safari-safe local-time parsing — LOW-12 fix
+// BUG-14 FIX: return '—' for missing/invalid dates; Safari-safe local-time parsing
 function fmtDate(d){
   if(!d) return '—';
   const dt = /^\d{4}-\d{2}-\d{2}$/.test(d) ? new Date(d + 'T00:00:00') : new Date(d);
-  if(isNaN(dt)) return String(d);
+  if(isNaN(dt.getTime())) return '—';
   const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return dt.getDate()+' '+months[dt.getMonth()]+' '+dt.getFullYear();
 }
 const genId = () => 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
-const today = () => new Date().toISOString().split('T')[0];
+// BUG-01 FIX: use local timezone offset so date is correct even after midnight IST
+function today(){
+  const d = new Date();
+  const offset = d.getTimezoneOffset();
+  const local = new Date(d.getTime() - offset * 60000);
+  return local.toISOString().split('T')[0];
+}
 
 // ===== KEBAB MENU (3-dot action dropdown) =====
 // ═══════════════════════════════════════════════════════════════
@@ -2356,6 +2401,8 @@ function confirm(msg,cb){ confirmDialog(msg,cb); }
 // ===== NAVIGATION =====
 function loadModule(mod){
   APP.currentModule = mod;
+  // BUG-11 FIX: reset pagination to page 1 whenever a module is (re)loaded
+  _pageState[mod] = 1;
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
   const navEl = document.querySelector(`.nav-item[data-module="${mod}"]`);
   if(navEl) navEl.classList.add('active');
@@ -2405,10 +2452,16 @@ function toggleSidebar(){
   const s=$('sidebar'), o=$('sidebarOverlay');
   const open = s.classList.toggle('open');
   o.style.display = open?'block':'none';
+  // MOB-01 FIX: block scroll on main content when sidebar is open on mobile
+  if(window.innerWidth<=768) document.body.style.overflow = open ? 'hidden' : '';
   if(open) closeFabSheet(); // close FAB when sidebar opens
 }
 function closeSidebarMobile(){
-  if(window.innerWidth<=768){ $('sidebar').classList.remove('open'); $('sidebarOverlay').style.display='none'; }
+  if(window.innerWidth<=768){
+    $('sidebar').classList.remove('open');
+    $('sidebarOverlay').style.display='none';
+    document.body.style.overflow = ''; // MOB-01 FIX: restore scroll
+  }
 }
 
 function toggleDarkMode(){
@@ -2416,6 +2469,15 @@ function toggleDarkMode(){
   document.documentElement.setAttribute('data-theme', APP.theme);
   localStorage.setItem('theme', APP.theme);
   $('darkModeBtn').textContent = APP.theme==='dark'?'☀️':'🌙';
+}
+
+// MOB-08: toggle expandable search bar on mobile
+function toggleMobileSearch(){
+  const bar = $('mobileSearchBar');
+  if(!bar) return;
+  const visible = bar.style.display !== 'none';
+  bar.style.display = visible ? 'none' : 'block';
+  if(!visible){ const inp=$('mobileSearchInput'); if(inp) inp.focus(); }
 }
 
 function toggleNotifPanel(){
@@ -2982,7 +3044,9 @@ function renderDashboard(){try{
     const _7labels=[], _7rev=[];
     for(let i=6;i>=0;i--){
       const d=new Date(); d.setDate(d.getDate()-i);
-      const ds=d.toISOString().split('T')[0];
+      // BUG-01 FIX: use local timezone for date string so chart aligns with today()
+      const _off=d.getTimezoneOffset();
+      const ds=new Date(d.getTime()-_off*60000).toISOString().split('T')[0];
       _7labels.push(_dn[d.getDay()]+' '+d.getDate());
       _7rev.push(LS.sales.filter(s=>s.date===ds).reduce((a,s)=>a+(s.total||0),0));
     }
@@ -3008,14 +3072,14 @@ function renderDashboard(){try{
     const c3=Chart.getChart('expenseChart'); if(c3) c3.destroy();
     APP.charts.exp = new Chart($('expenseChart'),{type:'bar',
       data:{labels:Object.keys(expCats).length?Object.keys(expCats):['No data'],datasets:[{label:'Expense',data:Object.values(expCats).length?Object.values(expCats):[0],backgroundColor:'rgba(239,68,68,.7)',borderRadius:6}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'₹'+v,font:{size:10}},grid:{color:'rgba(0,0,0,.04)'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'₹'+v,font:{size:10},color:_tc},grid:{color:_gc}},x:{ticks:{font:{size:10},color:_tc},grid:{display:false}}}}});
 
     const c4=Chart.getChart('profitChart'); if(c4) c4.destroy();
     APP.charts.profit = new Chart($('profitChart'),{type:'bar',
       data:{labels:['Revenue','Prod. Cost','Expenses','Net Profit'],
         datasets:[{data:[totalSales,productionCost,totalExpenses,Math.max(0,netProfit)],
           backgroundColor:['rgba(99,102,241,.8)','rgba(245,158,11,.8)','rgba(239,68,68,.8)','rgba(34,197,94,.8)'],borderRadius:6}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'₹'+v,font:{size:10}},grid:{color:'rgba(0,0,0,.04)'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'₹'+v,font:{size:10},color:_tc},grid:{color:_gc}},x:{ticks:{font:{size:10},color:_tc},grid:{display:false}}}}});
   },100);
 } catch(_e){ const _mc=$('moduleContent'); if(_mc) _mc.innerHTML='<div class="alert alert-danger" style="margin:20px;">⚠️ Error loading Dashboard: '+_e.message+'</div>'; console.error('[renderDashboard]',_e); }
 }
@@ -5657,7 +5721,7 @@ function _doDeleteProduction(id, restoreInventory=false){
 
 // ===== SALES =====
 // ===== PAGINATION =====
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 25;
 let _pageState = {};
 
 function _paginate(list, mod){
@@ -7067,6 +7131,12 @@ function saveAllSalaries(){
     dbInsert('salary_payments',payment);
     _ledgerCreate({sourceType:'salary',sourceId:payment.id,date,
       type:'expense',category:'Salaries',description:`Salary: ${e.name} (${month})`,amount:e.salary});
+    // BUG-10 FIX: generate double-entry journal for bulk salary payments
+    try{
+      const _je=_generateJournalEntry('salary',payment.id,'salary_payments',{
+        date,description:`Salary paid: ${e.name} (${month})`,amount:e.salary,mode});
+      _saveJournalEntry(_je);
+    }catch(_jeErr){ console.warn('[JE] Bulk salary journal error:',_jeErr.message); }
   });
   _saveDB();
   showToast(`Salary paid to ${(window._payAllList||[]).length} employees ✅`,'success');
