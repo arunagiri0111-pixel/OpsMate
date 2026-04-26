@@ -11,8 +11,6 @@
 <meta name="application-name" content="OpsMate ERP">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%236366F1'/><text y='.9em' font-size='75' x='12'>📊</text></svg>">
-<!-- Firebase config: loaded from config.js (not committed). See .env.example -->
-<script src="./config.js" onerror="console.warn('[Config] config.js not found — Firebase config must be set via window.firebaseConfig before init')"></script>
 
 <!-- PWA: iOS Safari (required for Add to Home Screen) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1385,9 +1383,15 @@ const CONFIG = { appName:'OpsMate ERP', currency:'\u20b9' };
 // Firebase instances (initialised in window.onload)
 let auth, db;
 
-// Firebase config is loaded from config.js (see .env.example).
-// window.firebaseConfig is set by config.js before this script runs.
-const firebaseConfig = window.firebaseConfig || {};
+const firebaseConfig = {
+  apiKey: "AIzaSyAhKHeg454v6ebWDAEr0NoL7gAu7hkiP7U",
+  authDomain: "opsmate-erp-f64fb.firebaseapp.com",
+  projectId: "opsmate-erp-f64fb",
+  storageBucket: "opsmate-erp-f64fb.firebasestorage.app",
+  messagingSenderId: "574895876230",
+  appId: "1:574895876230:web:dcccb6f57736e5cc054907",
+  measurementId: "G-17Q7J30T7L"
+};
 
 // ===== APP STATE =====
 let APP = {
