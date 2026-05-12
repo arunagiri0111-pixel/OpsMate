@@ -272,6 +272,8 @@ body.app-mode .sidebar{display:flex;}
   box-shadow:0 4px 14px rgba(194,80,8,.5);
 }
 .nav-item .ni{font-size:.85rem;width:18px;text-align:center;flex-shrink:0;}
+.pro-badge{font-size:.54rem;font-weight:700;letter-spacing:.4px;background:var(--primary);color:#fff;padding:1px 5px;border-radius:5px;margin-left:auto;flex-shrink:0;}
+.nav-item.active .pro-badge{background:rgba(255,255,255,.25);color:#fff;}
 .sidebar-footer{
   padding:12px;border-top:1px solid var(--border);flex-shrink:0;
 }
@@ -2309,7 +2311,7 @@ button:focus-visible, .btn:focus-visible, .nav-item:focus-visible{
     <div class="nav-group" id="ng-track">
       <div class="nav-section" onclick="toggleNavGroup('ng-track')">Tracking<i class="nav-section-arrow">▾</i></div>
       <div class="nav-group-items">
-        <div class="nav-item" data-module="inventory"><span class="ni">📦</span> Inventory</div>
+        <div class="nav-item" data-module="inventory"><span class="ni">📦</span> Inventory <span class="inv-badge" style="margin-left:auto;min-width:18px;height:18px;padding:0 5px;font-size:.62rem;font-weight:700;background:var(--danger);color:#fff;border-radius:20px;display:none;align-items:center;justify-content:center;"></span></div>
         <div class="nav-item" data-module="waste"><span class="ni">🗑️</span> Waste</div>
         <div class="nav-item" data-module="expenses"><span class="ni">💸</span> Expenses</div>
         <div class="nav-item" data-module="employees"><span class="ni">👤</span> Employees</div>
@@ -2323,9 +2325,9 @@ button:focus-visible, .btn:focus-visible, .nav-item:focus-visible{
         <div class="nav-item" data-module="margins"><span class="ni">📉</span> Margins</div>
         <div class="nav-item" data-module="analytics"><span class="ni">📈</span> Analytics</div>
         <div class="nav-item" data-module="reports"><span class="ni">📊</span> Reports</div>
-        <div class="nav-item" data-module="accounting"><span class="ni">🧾</span> Accounting</div>
-        <div class="nav-item" data-module="budget"><span class="ni">💼</span> Budget</div>
-        <div class="nav-item" data-module="forecast"><span class="ni">🔮</span> Forecasting</div>
+        <div class="nav-item" data-module="accounting"><span class="ni">🧾</span> Accounting <span class="pro-badge">PRO</span></div>
+        <div class="nav-item" data-module="budget"><span class="ni">💼</span> Budget <span class="pro-badge">PRO</span></div>
+        <div class="nav-item" data-module="forecast"><span class="ni">🔮</span> Forecasting <span class="pro-badge">PRO</span></div>
       </div>
     </div>
 
@@ -2346,6 +2348,7 @@ button:focus-visible, .btn:focus-visible, .nav-item:focus-visible{
         <div class="urole" id="sidebarRole">Bakery</div>
       </div>
     </div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:.62rem;color:var(--subtle);">Powered by <strong style="color:var(--primary);">OpsMate</strong></div>
   </div>
 </nav>
 
@@ -2387,6 +2390,7 @@ button:focus-visible, .btn:focus-visible, .nav-item:focus-visible{
       </div>
     </div>
     <div class="header-right">
+      <span id="headerSalesPill" style="display:none;font-size:.72rem;font-weight:600;background:var(--success-light);color:var(--success);border:1px solid var(--success-border);padding:4px 10px;border-radius:20px;white-space:nowrap;cursor:pointer;" onclick="loadModule('sales')"></span>
       <div class="search-bar">
         <span class="search-icon">🔍</span>
         <input type="text" placeholder="Search invoices, customers, products…" id="globalSearch"
@@ -2471,6 +2475,99 @@ let APP = {
   theme: localStorage.getItem('theme') || 'light',
   currentModule:'dashboard', charts:{}
 };
+
+// ===== PLAN SYSTEM =====
+const PLANS = {
+  free: {
+    name: 'Free', price: 0,
+    limits: {
+      businesses:1, salesPerMonth:50, productsMax:10, customersMax:25,
+      reportsExport:false, advancedAnalytics:false, bulkOrders:false,
+      accountingModule:false, forecastModule:false, budgetModule:false,
+      breakevenModule:false, marginsModule:false
+    }
+  },
+  business: {
+    name: 'Business',
+    prices: { monthly:299, sixMonth:1499, yearly:2499 },
+    limits: {
+      businesses:10, salesPerMonth:Infinity, productsMax:Infinity, customersMax:Infinity,
+      reportsExport:true, advancedAnalytics:true, bulkOrders:true,
+      accountingModule:true, forecastModule:true, budgetModule:true,
+      breakevenModule:true, marginsModule:true
+    }
+  }
+};
+function getUserPlan(){ const s=localStorage.getItem('om_plan')||'free'; return PLANS[s]||PLANS.free; }
+function getUserPlanName(){ return localStorage.getItem('om_plan')||'free'; }
+function canUse(feature){ const v=getUserPlan().limits[feature]; return v===true||v===Infinity; }
+function withinLimit(feature,count){ const l=getUserPlan().limits[feature]; return l===Infinity||count<l; }
+function activatePlan(name,dur){
+  localStorage.setItem('om_plan',name);
+  localStorage.setItem('om_plan_duration',dur);
+  localStorage.setItem('om_plan_activated',new Date().toISOString());
+  showToast('Business Plan activated! All features unlocked.','success');
+  _updatePlanBadge();
+  loadModule(APP.currentModule);
+}
+function planGate(feature,cb){ if(canUse(feature)) cb(); else showUpgradeModal(feature); }
+function showUpgradeModal(feature){
+  const labels={bulkOrders:'Bulk Orders',accountingModule:'Accounting',forecastModule:'Forecasting',
+    budgetModule:'Budget Planner',breakevenModule:'Break-Even Analysis',marginsModule:'Product Margins',
+    advancedAnalytics:'Advanced Analytics',reportsExport:'Reports & Export'};
+  const label=labels[feature]||feature;
+  openModal('Upgrade to Business Plan',
+    `<div style="text-align:center;padding:12px 0 20px;">
+      <div style="font-size:3rem;margin-bottom:12px;">🔒</div>
+      <h2 style="font-size:1.1rem;font-weight:800;margin-bottom:6px;">${label} is a Business Feature</h2>
+      <p style="font-size:.84rem;color:var(--muted);margin-bottom:20px;">Upgrade to OpsMate Business to unlock all advanced features.</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;">
+        <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;min-width:120px;cursor:pointer;"
+          onclick="closeModal();loadModule('settings');setTimeout(()=>{const b=document.querySelector('[data-tab=billing]');if(b)settingsTab('billing',b);},200)">
+          <div style="font-size:.7rem;color:var(--muted);">MONTHLY</div>
+          <div style="font-size:1.4rem;font-weight:800;color:var(--primary);">₹299</div>
+          <div style="font-size:.7rem;color:var(--muted);">/month</div>
+        </div>
+        <div style="background:var(--primary-light);border:2px solid var(--primary);border-radius:var(--radius-lg);padding:14px 16px;min-width:120px;cursor:pointer;position:relative;"
+          onclick="closeModal();loadModule('settings');setTimeout(()=>{const b=document.querySelector('[data-tab=billing]');if(b)settingsTab('billing',b);},200)">
+          <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;font-size:.58rem;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;">BEST VALUE</div>
+          <div style="font-size:.7rem;color:var(--primary);font-weight:600;">6 MONTHS</div>
+          <div style="font-size:1.4rem;font-weight:800;color:var(--primary);">₹1499</div>
+          <div style="font-size:.7rem;color:var(--muted);">₹250/mo</div>
+        </div>
+        <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;min-width:120px;cursor:pointer;"
+          onclick="closeModal();loadModule('settings');setTimeout(()=>{const b=document.querySelector('[data-tab=billing]');if(b)settingsTab('billing',b);},200)">
+          <div style="font-size:.7rem;color:var(--muted);">YEARLY</div>
+          <div style="font-size:1.4rem;font-weight:800;color:var(--primary);">₹2499</div>
+          <div style="font-size:.7rem;color:var(--muted);">₹208/mo</div>
+        </div>
+      </div>
+    </div>`,
+    `<button class="btn btn-outline" onclick="closeModal()">Maybe Later</button>
+     <button class="btn btn-primary" onclick="closeModal();loadModule('settings');setTimeout(()=>{const b=document.querySelector('[data-tab=billing]');if(b)settingsTab('billing',b);},200)">View Plans →</button>`
+  );
+}
+function _updatePlanBadge(){
+  const badge=$('planBadge'); if(!badge) return;
+  const isBiz=getUserPlanName()==='business';
+  badge.textContent=isBiz?'BUSINESS':'FREE PLAN';
+  badge.style.background=isBiz?'var(--primary)':'var(--surface2)';
+  badge.style.color=isBiz?'#fff':'var(--muted)';
+  badge.style.border=isBiz?'none':'1px solid var(--border)';
+}
+function _updateHeaderPills(){
+  const todayStr=today();
+  const todaySales=LS.sales.filter(s=>s.date===todayStr);
+  const todayRev=todaySales.reduce((a,s)=>a+(s.total||0),0);
+  const pill=$('headerSalesPill');
+  if(pill){
+    if(todaySales.length){ pill.textContent=`Today: ${todaySales.length} sale${todaySales.length>1?'s':''} · ${fmt(todayRev)}`; pill.style.display='inline-block'; }
+    else { pill.style.display='none'; }
+  }
+  const lowCount=typeof getReorderAlerts==='function'?getReorderAlerts().length:0;
+  const invBadge=document.querySelector('.nav-item[data-module="inventory"] .inv-badge');
+  if(invBadge){ if(lowCount>0){invBadge.textContent=lowCount;invBadge.style.display='inline-flex';}else{invBadge.style.display='none';} }
+}
 
 // ===== IN-MEMORY DATA STORE (synced from Firestore) =====
 function _emptyStore(){ return {
@@ -3222,6 +3319,7 @@ function _startRealtimeSync(){
     if(_listeners[t]) _listeners[t](); // unsubscribe old
     try{
       _listeners[t] = db.collection('users').doc(uid).collection(t)
+        .limit(500)
         .onSnapshot({ includeMetadataChanges: false }, snap=>{
           // Skip empty snapshots (no data in cloud)
           if(!snap || snap.size === 0) return;
@@ -11229,6 +11327,7 @@ function renderSettings(){try{
   <div class="page-header"><div><div class="page-title">Settings</div></div></div>
   <div class="tabs">
     <button class="tab-btn active" onclick="settingsTab('general',this)">⚙️ General</button>
+    <button class="tab-btn" data-tab="billing" onclick="settingsTab('billing',this)">💳 Billing</button>
     <button class="tab-btn" onclick="settingsTab('menu',this)">🍽️ Menu Builder</button>
     <button class="tab-btn" onclick="settingsTab('roles',this)">👥 Staff Roles</button>
   </div>
@@ -11370,6 +11469,105 @@ function settingsTab(tab, btn){
     </div>`
   };
   $('settingsContent').innerHTML = content[tab]||'';
+}
+
+function _buildBillingTabContent(){
+  const isBiz=getUserPlanName()==='business';
+  const activated=localStorage.getItem('om_plan_activated');
+  const duration=localStorage.getItem('om_plan_duration')||'';
+  const activatedDate=activated?fmtDate(activated.split('T')[0]):'';
+  const curMonth=today().slice(0,7);
+  const monthlySales=LS.sales.filter(s=>s.date&&s.date.startsWith(curMonth)).length;
+  const products=LS.products.length;
+  const customers=LS.customers.length;
+
+  const planCard=isBiz?`
+    <div class="card" style="margin-bottom:16px;border:2px solid var(--primary);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <div style="width:44px;height:44px;background:var(--primary);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;">★</div>
+        <div>
+          <div style="font-size:1rem;font-weight:800;color:var(--primary);">Business Plan Active</div>
+          <div style="font-size:.78rem;color:var(--muted);">${duration?duration+' plan':'Unlimited access'} ${activatedDate?'· since '+activatedDate:''}</div>
+        </div>
+      </div>
+      <p style="font-size:.82rem;color:var(--muted);">You have full access to all OpsMate features. Thank you for supporting us!</p>
+    </div>`:`
+    <div class="card" style="margin-bottom:16px;">
+      <h3 style="margin-bottom:6px;font-size:1rem;">📊 Free Plan Usage</h3>
+      <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">Upgrade to Business for unlimited access to all features.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${[{label:'Sales this month',val:monthlySales,max:50},{label:'Products',val:products,max:10},{label:'Customers',val:customers,max:25}].map(u=>{
+          const pct=Math.min(100,Math.round(u.val/u.max*100));
+          return `<div>
+            <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px;">
+              <span style="font-weight:600;">${u.label}</span>
+              <span style="color:${pct>=90?'var(--danger)':'var(--muted)'};">${u.val} / ${u.max}</span>
+            </div>
+            <div style="background:var(--surface2);border-radius:4px;height:6px;overflow:hidden;">
+              <div style="height:100%;background:${pct>=90?'var(--danger)':pct>=70?'var(--warning)':'var(--primary)'};width:${pct}%;border-radius:4px;"></div>
+            </div>
+          </div>`;}).join('')}
+      </div>
+    </div>`;
+
+  const pricingCards=!isBiz?`
+    <div class="card" style="margin-bottom:16px;">
+      <h3 style="margin-bottom:16px;font-size:1rem;">💳 Upgrade to Business Plan</h3>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+        <div style="flex:1;min-width:120px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;text-align:center;">
+          <div style="font-size:.68rem;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:6px;">MONTHLY</div>
+          <div style="font-size:1.6rem;font-weight:800;color:var(--primary);">₹299</div>
+          <div style="font-size:.7rem;color:var(--muted);margin-bottom:12px;">per month</div>
+          <button class="btn btn-outline btn-sm" style="width:100%;" onclick="_openRazorpay('monthly',299)">Pay ₹299</button>
+        </div>
+        <div style="flex:1;min-width:120px;background:var(--primary-light);border:2px solid var(--primary);border-radius:var(--radius-lg);padding:16px;text-align:center;position:relative;">
+          <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;font-size:.58rem;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;">BEST VALUE</div>
+          <div style="font-size:.68rem;font-weight:700;color:var(--primary);letter-spacing:.5px;margin-bottom:6px;">6 MONTHS</div>
+          <div style="font-size:1.6rem;font-weight:800;color:var(--primary);">₹1499</div>
+          <div style="font-size:.7rem;color:var(--muted);margin-bottom:12px;">₹250/month</div>
+          <button class="btn btn-primary btn-sm" style="width:100%;" onclick="_openRazorpay('sixMonth',1499)">Pay ₹1499</button>
+        </div>
+        <div style="flex:1;min-width:120px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;text-align:center;">
+          <div style="font-size:.68rem;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:6px;">YEARLY</div>
+          <div style="font-size:1.6rem;font-weight:800;color:var(--primary);">₹2499</div>
+          <div style="font-size:.7rem;color:var(--muted);margin-bottom:12px;">₹208/month</div>
+          <button class="btn btn-outline btn-sm" style="width:100%;" onclick="_openRazorpay('yearly',2499)">Pay ₹2499</button>
+        </div>
+      </div>
+      <div style="font-size:.75rem;color:var(--muted);text-align:center;">Secure payment via Razorpay · UPI, Cards, Net Banking accepted</div>
+    </div>
+    <div class="card" style="margin-bottom:16px;">
+      <h3 style="margin-bottom:12px;font-size:1rem;">✨ Business Plan includes</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;">
+        ${['Unlimited Sales & Products','Bulk Orders','Accounting Module','Forecasting & Budget','Break-Even Analysis','Advanced Analytics','Product Margins','Reports Export (CSV/PDF)'].map(f=>`
+          <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;">
+            <span style="color:var(--success);">✓</span> ${f}
+          </div>`).join('')}
+      </div>
+    </div>`:'';
+
+  return planCard+pricingCards+`
+    <div class="card">
+      <h3 style="margin-bottom:12px;font-size:1rem;">🔑 Activation Code</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input class="form-input" id="planCodeInput" placeholder="Enter activation code e.g. OPSMATE-1M" style="flex:1;min-width:180px;">
+        <button class="btn btn-primary" onclick="_activatePlanCode()">Activate</button>
+      </div>
+      <div style="font-size:.74rem;color:var(--muted);margin-top:8px;">After payment, you will receive an activation code by email or WhatsApp.</div>
+    </div>`;
+}
+
+function _openRazorpay(plan, amount){
+  showToast('Opening payment gateway…','info');
+  window.open('https://razorpay.me/@opsmate','_blank');
+}
+
+function _activatePlanCode(){
+  const code=($('planCodeInput')?.value||'').trim().toUpperCase();
+  if(!code){showToast('Enter an activation code','warning');return;}
+  const valid={'OPSMATE-1M':{plan:'business',dur:'1-Month'},'OPSMATE-6M':{plan:'business',dur:'6-Month'},'OPSMATE-1Y':{plan:'business',dur:'1-Year'}};
+  if(valid[code]){activatePlan(valid[code].plan,valid[code].dur);renderSettings();}
+  else{showToast('Invalid activation code. Please check and try again.','error');}
 }
 
 function saveGeneralSettings(){
