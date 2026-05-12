@@ -2303,7 +2303,7 @@ button:focus-visible, .btn:focus-visible, .nav-item:focus-visible{
         <div class="nav-item" data-module="purchases"><span class="ni">🛒</span> Purchases</div>
         <div class="nav-item" data-module="sales"><span class="ni">💰</span> Sales</div>
         <div class="nav-item" data-module="production"><span class="ni">🏭</span> Production</div>
-        <div class="nav-item" data-module="bulkorders"><span class="ni">📦</span> Bulk Orders <span class="pro-badge">PRO</span></div>
+        <div class="nav-item" data-module="bulkorders"><span class="ni">📦</span> Bulk Orders</div>
         <div class="nav-item" data-module="creditnotes"><span class="ni">🔄</span> Credit Notes</div>
       </div>
     </div>
@@ -2321,9 +2321,9 @@ button:focus-visible, .btn:focus-visible, .nav-item:focus-visible{
     <div class="nav-group" id="ng-intel">
       <div class="nav-section" onclick="toggleNavGroup('ng-intel')">Intelligence<i class="nav-section-arrow">▾</i></div>
       <div class="nav-group-items">
-        <div class="nav-item" data-module="breakeven"><span class="ni">🎯</span> Break-Even <span class="pro-badge">PRO</span></div>
-        <div class="nav-item" data-module="margins"><span class="ni">📉</span> Margins <span class="pro-badge">PRO</span></div>
-        <div class="nav-item" data-module="analytics"><span class="ni">📈</span> Analytics <span class="pro-badge">PRO</span></div>
+        <div class="nav-item" data-module="breakeven"><span class="ni">🎯</span> Break-Even</div>
+        <div class="nav-item" data-module="margins"><span class="ni">📉</span> Margins</div>
+        <div class="nav-item" data-module="analytics"><span class="ni">📈</span> Analytics</div>
         <div class="nav-item" data-module="reports"><span class="ni">📊</span> Reports</div>
         <div class="nav-item" data-module="accounting"><span class="ni">🧾</span> Accounting <span class="pro-badge">PRO</span></div>
         <div class="nav-item" data-module="budget"><span class="ni">💼</span> Budget <span class="pro-badge">PRO</span></div>
@@ -2341,10 +2341,6 @@ button:focus-visible, .btn:focus-visible, .nav-item:focus-visible{
     </div>
   </div>
   <div class="sidebar-footer">
-    <div style="padding:4px 8px 6px;">
-      <span id="planBadge" onclick="loadModule('settings');setTimeout(()=>{const b=document.querySelector('[data-tab=billing]');if(b)settingsTab('billing',b);},200)"
-        style="display:inline-block;font-size:.6rem;font-weight:700;letter-spacing:.8px;padding:3px 8px;border-radius:10px;cursor:pointer;background:var(--surface2);color:var(--muted);border:1px solid var(--border);">FREE PLAN</span>
-    </div>
     <div class="user-card">
       <div class="user-avatar" id="sidebarAvatar">U</div>
       <div class="user-info">
@@ -3589,8 +3585,6 @@ function initApp(){
   });
   APP.activeBizId = localStorage.getItem('opsmate_active_biz') || 'default';
   renderBizSwitcher();
-  _updatePlanBadge();
-  setTimeout(_updateHeaderPills, 800);
   // Update sync badge with current state
   if(_isOnline){ _setSyncBadge('ok', 'Cloud Synced'); }
   else { _setSyncBadge('offline', 'Offline mode'); }
@@ -3842,13 +3836,8 @@ function loadModule(mod){
       if(mc) mc.innerHTML=`<div class="alert alert-warning" style="margin:40px 20px;text-align:center;"><div style="font-size:2rem;margin-bottom:12px;">🔒</div><h3 style="margin-bottom:8px;">Access Restricted</h3><p style="color:var(--muted);">Your role (<strong>${ROLE_DEFS[getUserRole()]?.label||getUserRole()}</strong>) doesn't have access to this module. Contact the business owner to change your permissions.</p></div>`;
       return;
     }
-    // Plan-gate check (runs after role check)
-    const _planGates={bulkorders:'bulkOrders',accounting:'accountingModule',forecast:'forecastModule',
-      budget:'budgetModule',breakeven:'breakevenModule',analytics:'advancedAnalytics',margins:'marginsModule'};
-    if(_planGates[mod]&&!canUse(_planGates[mod])){ showUpgradeModal(_planGates[mod]); return; }
     modules[mod]();
   }
-  setTimeout(_updateHeaderPills, 200);
   // Scroll to top on mobile
   if(window.innerWidth<=768){
     window.scrollTo({top:0,behavior:'smooth'});
@@ -11449,7 +11438,6 @@ function settingsTab(tab, btn){
       </div>
     </div>
     ${_renderInstallCard()}` ,
-    billing: _buildBillingTabContent(),
     menu: _buildMenuTabContent(),
     roles: `<div class="card" style="margin-bottom:16px;">
       <h3 style="margin-bottom:16px;font-size:1rem;">👥 Staff Roles & Permissions</h3>
