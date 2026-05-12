@@ -210,6 +210,8 @@ body.app-mode .sidebar{display:flex;}
   box-shadow:0 2px 8px rgba(91,95,237,.3);
 }
 .nav-item .ni{font-size:.85rem;width:18px;text-align:center;flex-shrink:0;}
+.pro-badge{font-size:.55rem;font-weight:700;letter-spacing:.5px;background:var(--primary);color:#fff;padding:1px 5px;border-radius:6px;margin-left:auto;flex-shrink:0;}
+.nav-item.active .pro-badge{background:rgba(255,255,255,.25);color:#fff;}
 .sidebar-footer{
   padding:12px;border-top:1px solid var(--border);flex-shrink:0;
 }
@@ -801,13 +803,13 @@ textarea.form-input{resize:vertical;min-height:72px;}
    ================================================================ */
 @media(max-width:768px){
   .mobile-header{display:flex;}
-  /* bottom-nav removed */
+  .bottom-nav{display:flex;}
   .sidebar{display:flex!important;transform:translateX(-260px);width:260px;}
   .sidebar.open{transform:translateX(0)!important;}
   .header{display:none!important;}
   body.app-mode{flex-direction:column;overflow-x:hidden;}
   html{overflow-x:hidden;}
-  .main{margin-left:0!important;width:100%;max-width:100vw;overflow-x:hidden;padding-bottom:20px;}
+  .main{margin-left:0!important;width:100%;max-width:100vw;overflow-x:hidden;padding-bottom:calc(60px + env(safe-area-inset-bottom));}
   .content{padding:12px;max-width:100%;overflow-x:hidden;}
   .btn{min-height:40px;}
   .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:calc(100vw - 24px);}
@@ -823,7 +825,7 @@ textarea.form-input{resize:vertical;min-height:72px;}
   .modal,.bottom-sheet,.notif-panel{max-width:100vw;box-sizing:border-box;}
   .stats-grid{grid-template-columns:repeat(2,1fr);}
   .page-title{font-size:.9rem;}
-  .toast-container{bottom:72px;right:10px;left:10px;}
+  .toast-container{bottom:calc(72px + env(safe-area-inset-bottom));right:10px;left:10px;}
   .toast{min-width:unset;max-width:100%;}
   input.form-input, select.form-input, textarea.form-input{font-size:16px !important;}
   /* MOB-02: minimum 44px touch targets on mobile */
@@ -840,8 +842,8 @@ textarea.form-input{resize:vertical;min-height:72px;}
     overflow-y:auto;
     -webkit-overflow-scrolling:touch;
   }
-  /* MOB-06: FAB must clear home indicator on iPhone X+ */
-  #globalFab{bottom:calc(24px + env(safe-area-inset-bottom));}
+  /* MOB-06: FAB must clear bottom nav + home indicator on iPhone X+ */
+  #globalFab{bottom:calc(72px + env(safe-area-inset-bottom));}
   #fabSheet{bottom:0;}
   /* MOB-05: ensure all tables scroll horizontally */
   .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;}
@@ -1164,14 +1166,14 @@ textarea.form-input{resize:vertical;min-height:72px;}
         <div class="nav-item" data-module="purchases"><span class="ni">🛒</span> Purchases</div>
         <div class="nav-item" data-module="sales"><span class="ni">💰</span> Sales</div>
         <div class="nav-item" data-module="production"><span class="ni">🏭</span> Production</div>
-        <div class="nav-item" data-module="bulkorders"><span class="ni">📦</span> Bulk Orders</div>
+        <div class="nav-item" data-module="bulkorders"><span class="ni">📦</span> Bulk Orders <span class="pro-badge">PRO</span></div>
       </div>
     </div>
 
     <div class="nav-group" id="ng-track">
       <div class="nav-section" onclick="toggleNavGroup('ng-track')">Tracking<i class="nav-section-arrow">▾</i></div>
       <div class="nav-group-items">
-        <div class="nav-item" data-module="inventory"><span class="ni">📦</span> Inventory</div>
+        <div class="nav-item" data-module="inventory"><span class="ni">📦</span> Inventory <span class="inv-badge" style="margin-left:auto;min-width:18px;height:18px;padding:0 5px;font-size:.62rem;font-weight:700;background:var(--danger);color:#fff;border-radius:20px;display:none;align-items:center;justify-content:center;"></span></div>
         <div class="nav-item" data-module="waste"><span class="ni">🗑️</span> Waste</div>
         <div class="nav-item" data-module="expenses"><span class="ni">💸</span> Expenses</div>
         <div class="nav-item" data-module="employees"><span class="ni">👤</span> Employees</div>
@@ -1181,12 +1183,12 @@ textarea.form-input{resize:vertical;min-height:72px;}
     <div class="nav-group" id="ng-intel">
       <div class="nav-section" onclick="toggleNavGroup('ng-intel')">Intelligence<i class="nav-section-arrow">▾</i></div>
       <div class="nav-group-items">
-        <div class="nav-item" data-module="breakeven"><span class="ni">🎯</span> Break-Even</div>
-        <div class="nav-item" data-module="analytics"><span class="ni">📈</span> Analytics</div>
+        <div class="nav-item" data-module="breakeven"><span class="ni">🎯</span> Break-Even <span class="pro-badge">PRO</span></div>
+        <div class="nav-item" data-module="analytics"><span class="ni">📈</span> Analytics <span class="pro-badge">PRO</span></div>
         <div class="nav-item" data-module="reports"><span class="ni">📊</span> Reports</div>
-        <div class="nav-item" data-module="accounting"><span class="ni">🧾</span> Accounting</div>
-        <div class="nav-item" data-module="budget"><span class="ni">💼</span> Budget</div>
-        <div class="nav-item" data-module="forecast"><span class="ni">🔮</span> Forecasting</div>
+        <div class="nav-item" data-module="accounting"><span class="ni">🧾</span> Accounting <span class="pro-badge">PRO</span></div>
+        <div class="nav-item" data-module="budget"><span class="ni">💼</span> Budget <span class="pro-badge">PRO</span></div>
+        <div class="nav-item" data-module="forecast"><span class="ni">🔮</span> Forecasting <span class="pro-badge">PRO</span></div>
       </div>
     </div>
 
@@ -1200,7 +1202,12 @@ textarea.form-input{resize:vertical;min-height:72px;}
     </div>
   </div>
   <div class="sidebar-footer">
-    <!-- STEP 6: Business Switcher -->
+    <!-- Plan badge -->
+    <div style="padding:6px 12px 4px;">
+      <span id="planBadge" onclick="loadModule('settings');setTimeout(()=>{const b=document.querySelector('[data-tab=billing]');if(b)settingsTab('billing',b);},200)"
+        style="display:inline-block;font-size:.62rem;font-weight:700;letter-spacing:.8px;padding:3px 8px;border-radius:10px;cursor:pointer;background:var(--surface2);color:var(--muted);border:1px solid var(--border);">FREE PLAN</span>
+    </div>
+    <!-- Business Switcher -->
     <div id="bizSwitcherWrap" style="margin-bottom:8px;">
       <div class="biz-switcher" onclick="toggleBizDropdown()" id="bizSwitcherBtn">
         <div class="biz-dot"></div>
@@ -1219,6 +1226,7 @@ textarea.form-input{resize:vertical;min-height:72px;}
         <div class="role" id="sidebarRole">Bakery</div>
       </div>
     </div>
+    <div style="text-align:center;padding:8px 0 4px;font-size:.64rem;color:var(--subtle);">Powered by <strong style="color:var(--primary);">OpsMate</strong></div>
   </div>
 </nav>
 
@@ -1257,6 +1265,7 @@ textarea.form-input{resize:vertical;min-height:72px;}
       <span class="header-title" id="headerTitle">Dashboard</span>
     </div>
     <div class="header-right">
+      <span id="headerSalesPill" style="display:none;font-size:.72rem;font-weight:600;background:var(--success-light);color:var(--success);border:1px solid var(--success-border);padding:4px 10px;border-radius:20px;white-space:nowrap;cursor:pointer;" onclick="loadModule('sales')"></span>
       <div class="search-bar">
         <span class="search-icon">🔍</span>
         <input type="text" placeholder="Search..." id="globalSearch" oninput="if(this.value.length>2)globalSearch(this.value)" onkeydown="if(event.key==='Enter')globalSearch(this.value)">
@@ -1351,18 +1360,6 @@ textarea.form-input{resize:vertical;min-height:72px;}
       <div class="fab-action-icon" style="background:#FFFBEB;">🛒</div>
       <div><div class="fab-action-label">Purchase</div><div class="fab-action-sub">Buy materials</div></div>
     </button>
-    <button class="fab-action-btn" onclick="fabAction('production')">
-      <div class="fab-action-icon" style="background:#F0FDF4;">🏭</div>
-      <div><div class="fab-action-label">Production</div><div class="fab-action-sub">Log a batch</div></div>
-    </button>
-    <button class="fab-action-btn" onclick="fabAction('product')">
-      <div class="fab-action-icon" style="background:#F5F3FF;">🍞</div>
-      <div><div class="fab-action-label">Product</div><div class="fab-action-sub">Add product</div></div>
-    </button>
-    <button class="fab-action-btn" onclick="fabAction('material')">
-      <div class="fab-action-icon" style="background:#ECFDF5;">🧱</div>
-      <div><div class="fab-action-label">Material</div><div class="fab-action-sub">Add material</div></div>
-    </button>
   </div>
 </div>
 
@@ -1399,6 +1396,124 @@ let APP = {
   theme: localStorage.getItem('theme') || 'light',
   currentModule:'dashboard', charts:{}
 };
+
+// ===== PLAN SYSTEM =====
+const PLANS = {
+  free: {
+    name: 'Free',
+    price: 0,
+    limits: {
+      businesses: 1,
+      salesPerMonth: 50,
+      productsMax: 10,
+      customersMax: 25,
+      reportsExport: false,
+      advancedAnalytics: false,
+      bulkOrders: false,
+      accountingModule: false,
+      forecastModule: false,
+      budgetModule: false,
+      breakevenModule: false,
+      whatsappReminders: false,
+      loyaltyPoints: false,
+      thermalPrint: false,
+      voiceInput: false,
+      upiQr: false,
+      aiReorder: false
+    }
+  },
+  business: {
+    name: 'Business',
+    prices: { monthly: 299, sixMonth: 1499, yearly: 2499 },
+    limits: {
+      businesses: 10,
+      salesPerMonth: Infinity,
+      productsMax: Infinity,
+      customersMax: Infinity,
+      reportsExport: true,
+      advancedAnalytics: true,
+      bulkOrders: true,
+      accountingModule: true,
+      forecastModule: true,
+      budgetModule: true,
+      breakevenModule: true,
+      whatsappReminders: true,
+      loyaltyPoints: true,
+      thermalPrint: true,
+      voiceInput: true,
+      upiQr: true,
+      aiReorder: true
+    }
+  }
+};
+
+function getUserPlan(){ const s=localStorage.getItem('om_plan')||'free'; return PLANS[s]||PLANS.free; }
+function getUserPlanName(){ return localStorage.getItem('om_plan')||'free'; }
+function canUse(feature){ const v=getUserPlan().limits[feature]; return v===true||v===Infinity; }
+function withinLimit(feature, count){ const l=getUserPlan().limits[feature]; return l===Infinity||count<l; }
+function activatePlan(name, dur){
+  localStorage.setItem('om_plan', name);
+  localStorage.setItem('om_plan_duration', dur);
+  localStorage.setItem('om_plan_activated', new Date().toISOString());
+  showToast('Business Plan activated! All features unlocked.','success');
+  _updatePlanBadge();
+  loadModule(APP.currentModule);
+}
+function planGate(feature, cb){ if(canUse(feature)) cb(); else showUpgradeModal(feature); }
+
+function showUpgradeModal(feature){
+  const featureLabels = {
+    bulkOrders:'Bulk Orders', accountingModule:'Accounting', forecastModule:'Forecasting',
+    budgetModule:'Budget Planner', breakevenModule:'Break-Even Analysis',
+    advancedAnalytics:'Advanced Analytics', reportsExport:'Reports & Export',
+    whatsappReminders:'WhatsApp Reminders', loyaltyPoints:'Loyalty Points',
+    thermalPrint:'Thermal Printing', voiceInput:'Voice Input', upiQr:'UPI QR Codes', aiReorder:'AI Reorder'
+  };
+  const label = featureLabels[feature] || feature;
+  openModal('Upgrade to Business Plan',
+    `<div style="text-align:center;padding:12px 0 20px;">
+      <div style="font-size:3rem;margin-bottom:12px;">🔒</div>
+      <h2 style="font-size:1.1rem;font-weight:800;margin-bottom:6px;">${label} is a Business Feature</h2>
+      <p style="font-size:.84rem;color:var(--muted);margin-bottom:20px;">Upgrade to OpsMate Business to unlock all advanced features.</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px;min-width:130px;cursor:pointer;transition:var(--transition);"
+          onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'"
+          onclick="closeModal();loadModule('settings');setTimeout(()=>{settingsTab('billing',document.querySelector('[data-tab=billing]'))},200)">
+          <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px;">MONTHLY</div>
+          <div style="font-size:1.4rem;font-weight:800;color:var(--primary);">₹299</div>
+          <div style="font-size:.7rem;color:var(--muted);">per month</div>
+        </div>
+        <div style="background:var(--primary-light);border:2px solid var(--primary);border-radius:var(--radius-lg);padding:14px 18px;min-width:130px;cursor:pointer;position:relative;"
+          onclick="closeModal();loadModule('settings');setTimeout(()=>{settingsTab('billing',document.querySelector('[data-tab=billing]'))},200)">
+          <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;">BEST VALUE</div>
+          <div style="font-size:.72rem;color:var(--primary);margin-bottom:4px;font-weight:600;">6 MONTHS</div>
+          <div style="font-size:1.4rem;font-weight:800;color:var(--primary);">₹1499</div>
+          <div style="font-size:.7rem;color:var(--muted);">₹250/month</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px;min-width:130px;cursor:pointer;transition:var(--transition);"
+          onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'"
+          onclick="closeModal();loadModule('settings');setTimeout(()=>{settingsTab('billing',document.querySelector('[data-tab=billing]'))},200)">
+          <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px;">YEARLY</div>
+          <div style="font-size:1.4rem;font-weight:800;color:var(--primary);">₹2499</div>
+          <div style="font-size:.7rem;color:var(--muted);">₹208/month</div>
+        </div>
+      </div>
+      <div style="font-size:.78rem;color:var(--muted);">All plans include unlimited support · Cancel anytime</div>
+    </div>`,
+    `<button class="btn btn-outline" onclick="closeModal()">Maybe Later</button>
+     <button class="btn btn-primary" onclick="closeModal();loadModule('settings');setTimeout(()=>{const b=document.querySelector('[data-tab=billing]');if(b)settingsTab('billing',b);},200)">View Plans →</button>`
+  );
+}
+
+function _updatePlanBadge(){
+  const badge = document.getElementById('planBadge');
+  if(!badge) return;
+  const isBiz = getUserPlanName()==='business';
+  badge.textContent = isBiz ? 'BUSINESS' : 'FREE PLAN';
+  badge.style.background = isBiz ? 'var(--primary)' : 'var(--surface2)';
+  badge.style.color = isBiz ? '#fff' : 'var(--muted)';
+  badge.style.border = isBiz ? 'none' : '1px solid var(--border)';
+}
 
 // ===== IN-MEMORY DATA STORE (synced from Firestore) =====
 function _emptyStore(){ return {
@@ -1778,8 +1893,15 @@ function _userCol(table){
 var LS_CACHE_KEY = 'om_cache_v2';
 var _saveDBTimer = null;
 function _saveDB(){
-  try{ localStorage.setItem(LS_CACHE_KEY, JSON.stringify(LS)); return true; }
-  catch(e){ console.warn('[Cache] write failed:', e.message); return false; }
+  try{
+    const payload = JSON.stringify(LS);
+    // Warn if cache is approaching 5 MB localStorage limit
+    if(payload.length > 4 * 1024 * 1024){
+      console.warn('[Cache] localStorage cache is large ('+Math.round(payload.length/1024)+' KB). Consider clearing old data.');
+    }
+    localStorage.setItem(LS_CACHE_KEY, payload);
+    return true;
+  } catch(e){ console.warn('[Cache] write failed:', e.message); return false; }
 }
 // BUG-025 FIX: debounced version for high-frequency call sites (oninput handlers)
 // Batches writes into one per 500ms instead of one per keystroke
@@ -2073,6 +2195,7 @@ function _startRealtimeSync(){
     if(_listeners[t]) _listeners[t](); // unsubscribe old
     try{
       _listeners[t] = db.collection('users').doc(uid).collection(t)
+        .limit(500)
         .onSnapshot({ includeMetadataChanges: false }, snap=>{
           // Skip empty snapshots (no data in cloud)
           if(!snap || snap.size === 0) return;
@@ -2277,6 +2400,8 @@ function initApp(){
   });
   APP.activeBizId = localStorage.getItem('opsmate_active_biz') || 'default';
   renderBizSwitcher();
+  _updatePlanBadge();
+  setTimeout(_updateHeaderPills, 800);
   hideLoading();
   // Update sync badge with current state
   if(_isOnline){ _setSyncBadge('ok', 'Cloud Synced'); }
@@ -2302,6 +2427,28 @@ function saveDbConfig(){}
 function testDbConfig(){}
 
 // Legacy stubs
+
+// ===== HEADER SALES PILL + INVENTORY BADGE =====
+function _updateHeaderPills(){
+  const todayStr = today();
+  const todaySales = LS.sales.filter(s=>s.date===todayStr);
+  const todayRev = todaySales.reduce((a,s)=>a+(s.total||0),0);
+  // Sales pill in desktop header
+  let pill = $('headerSalesPill');
+  if(pill){
+    pill.textContent = todaySales.length
+      ? `Today: ${todaySales.length} sale${todaySales.length>1?'s':''} · ${fmt(todayRev)}`
+      : 'No sales today';
+    pill.style.display = 'inline-block';
+  }
+  // Inventory low-stock nav badge
+  const lowCount = getReorderAlerts ? getReorderAlerts().length : 0;
+  const invBadge = document.querySelector('.nav-item[data-module="inventory"] .inv-badge');
+  if(invBadge){
+    if(lowCount>0){ invBadge.textContent=lowCount; invBadge.style.display='inline-flex'; }
+    else { invBadge.style.display='none'; }
+  }
+}
 
 // ===== INTELLIGENCE: REORDER & STOCK ALERTS =====
 function getReorderAlerts(){
@@ -2404,6 +2551,15 @@ function confirm(msg,cb){ confirmDialog(msg,cb); }
 
 // ===== NAVIGATION =====
 function loadModule(mod){
+  // Plan-gate check BEFORE updating state
+  const _planGates = {
+    bulkorders:'bulkOrders', accounting:'accountingModule', forecast:'forecastModule',
+    budget:'budgetModule', breakeven:'breakevenModule', analytics:'advancedAnalytics'
+  };
+  if(_planGates[mod] && !canUse(_planGates[mod])){
+    showUpgradeModal(_planGates[mod]);
+    return;
+  }
   APP.currentModule = mod;
   // BUG-11 FIX: reset pagination to page 1 whenever a module is (re)loaded
   _pageState[mod] = 1;
@@ -2442,6 +2598,7 @@ function loadModule(mod){
     settings:renderSettings,admin:renderAdmin,bulkorders:renderBulkOrders,
     recipes:renderRecipes,costing:renderCosting,reports:renderReports,accounting:renderAccounting};
   if(modules[mod]) modules[mod]();
+  setTimeout(_updateHeaderPills, 200);
   // Scroll to top on mobile
   if(window.innerWidth<=768) window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -8969,6 +9126,7 @@ function renderSettings(){try{
   <div class="page-header"><div><div class="page-title">Settings</div></div></div>
   <div class="tabs">
     <button class="tab-btn active" onclick="settingsTab('general',this)">⚙️ General</button>
+    <button class="tab-btn" data-tab="billing" onclick="settingsTab('billing',this)">💳 Billing</button>
     <button class="tab-btn" onclick="settingsTab('menu',this)">🍽️ Menu Builder</button>
   </div>
   <div id="settingsContent"></div>`;
@@ -9077,9 +9235,135 @@ function settingsTab(tab, btn){
       </div>
     </div>
     ${_renderInstallCard()}` ,
+    billing: _buildBillingTabContent(),
     menu: _buildMenuTabContent()
   };
   $('settingsContent').innerHTML = content[tab]||'';
+}
+
+function _buildBillingTabContent(){
+  const planName = getUserPlanName();
+  const isBiz = planName === 'business';
+  const activated = localStorage.getItem('om_plan_activated');
+  const duration = localStorage.getItem('om_plan_duration') || '';
+  const activatedDate = activated ? fmtDate(activated.split('T')[0]) : '';
+
+  // Usage meters (for free plan)
+  const curMonth = today().slice(0,7);
+  const monthlySales = LS.sales.filter(s=>s.date&&s.date.startsWith(curMonth)).length;
+  const products = LS.products.length;
+  const customers = LS.customers.length;
+  const pctSales = Math.min(100, Math.round(monthlySales/50*100));
+  const pctProd = Math.min(100, Math.round(products/10*100));
+  const pctCust = Math.min(100, Math.round(customers/25*100));
+
+  const planCard = isBiz ? `
+    <div class="card" style="margin-bottom:16px;border:2px solid var(--primary);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <div style="width:44px;height:44px;background:var(--primary);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;">★</div>
+        <div>
+          <div style="font-size:1rem;font-weight:800;color:var(--primary);">Business Plan Active</div>
+          <div style="font-size:.78rem;color:var(--muted);">${duration ? duration+' plan' : 'Unlimited access'} ${activatedDate?'· since '+activatedDate:''}</div>
+        </div>
+      </div>
+      <p style="font-size:.82rem;color:var(--muted);">You have full access to all OpsMate features. Thank you for supporting us!</p>
+    </div>` : `
+    <div class="card" style="margin-bottom:16px;">
+      <h3 style="margin-bottom:6px;font-size:1rem;">📊 Free Plan Usage</h3>
+      <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">You are on the Free Plan. Upgrade to Business for unlimited access.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${[
+          {label:'Sales this month', val:monthlySales, max:50, pct:pctSales},
+          {label:'Products', val:products, max:10, pct:pctProd},
+          {label:'Customers', val:customers, max:25, pct:pctCust}
+        ].map(u=>`
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px;">
+              <span style="font-weight:600;">${u.label}</span>
+              <span style="color:${u.pct>=90?'var(--danger)':'var(--muted)'};">${u.val} / ${u.max}</span>
+            </div>
+            <div style="background:var(--surface2);border-radius:4px;height:6px;overflow:hidden;">
+              <div style="height:100%;background:${u.pct>=90?'var(--danger)':u.pct>=70?'var(--warning)':'var(--primary)'};width:${u.pct}%;border-radius:4px;transition:width .4s;"></div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  const pricingCards = `
+    <div class="card" style="margin-bottom:16px;">
+      <h3 style="margin-bottom:16px;font-size:1rem;">💳 Upgrade to Business Plan</h3>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+        <div style="flex:1;min-width:130px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;text-align:center;">
+          <div style="font-size:.7rem;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:6px;">MONTHLY</div>
+          <div style="font-size:1.6rem;font-weight:800;color:var(--primary);">₹299</div>
+          <div style="font-size:.72rem;color:var(--muted);margin-bottom:12px;">per month</div>
+          <button class="btn btn-outline btn-sm" style="width:100%;" onclick="_openRazorpay('monthly',299)">Pay ₹299</button>
+        </div>
+        <div style="flex:1;min-width:130px;background:var(--primary-light);border:2px solid var(--primary);border-radius:var(--radius-lg);padding:16px;text-align:center;position:relative;">
+          <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;">BEST VALUE</div>
+          <div style="font-size:.7rem;font-weight:700;color:var(--primary);letter-spacing:.5px;margin-bottom:6px;">6 MONTHS</div>
+          <div style="font-size:1.6rem;font-weight:800;color:var(--primary);">₹1499</div>
+          <div style="font-size:.72rem;color:var(--muted);margin-bottom:12px;">₹250/month</div>
+          <button class="btn btn-primary btn-sm" style="width:100%;" onclick="_openRazorpay('sixMonth',1499)">Pay ₹1499</button>
+        </div>
+        <div style="flex:1;min-width:130px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;text-align:center;">
+          <div style="font-size:.7rem;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:6px;">YEARLY</div>
+          <div style="font-size:1.6rem;font-weight:800;color:var(--primary);">₹2499</div>
+          <div style="font-size:.72rem;color:var(--muted);margin-bottom:12px;">₹208/month</div>
+          <button class="btn btn-outline btn-sm" style="width:100%;" onclick="_openRazorpay('yearly',2499)">Pay ₹2499</button>
+        </div>
+      </div>
+      <div style="font-size:.76rem;color:var(--muted);text-align:center;">
+        Secure payment via Razorpay · UPI, Cards, Net Banking accepted · Cancel anytime
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px;">
+      <h3 style="margin-bottom:12px;font-size:1rem;">✨ What's included in Business Plan</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;">
+        ${['Unlimited Sales & Products','Bulk Orders','Accounting Module','Forecasting & Budget','Break-Even Analysis','Advanced Analytics','Reports Export (CSV/PDF)','Priority Support'].map(f=>`
+          <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--text);">
+            <span style="color:var(--success);font-size:.9rem;">✓</span> ${f}
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  return planCard + (!isBiz ? pricingCards : '') + `
+    <div class="card">
+      <h3 style="margin-bottom:12px;font-size:1rem;">🔑 Have an Activation Code?</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input class="form-input" id="planCodeInput" placeholder="Enter activation code" style="flex:1;min-width:180px;">
+        <button class="btn btn-primary" onclick="_activatePlanCode()">Activate</button>
+      </div>
+      <div style="font-size:.74rem;color:var(--muted);margin-top:8px;">After payment, you will receive an activation code by email or WhatsApp.</div>
+    </div>`;
+}
+
+function _openRazorpay(plan, amount){
+  // Razorpay payment link integration
+  const links = {
+    monthly:  'https://razorpay.me/@opsmate',
+    sixMonth: 'https://razorpay.me/@opsmate',
+    yearly:   'https://razorpay.me/@opsmate'
+  };
+  showToast('Opening payment gateway…','info');
+  window.open(links[plan]||'https://razorpay.me/@opsmate','_blank');
+}
+
+function _activatePlanCode(){
+  const code = ($('planCodeInput')?.value||'').trim().toUpperCase();
+  if(!code){ showToast('Enter an activation code','warning'); return; }
+  // Simple code validation (real implementation would verify server-side)
+  const validCodes = {
+    'OPSMATE-1M': {plan:'business', dur:'1-Month'},
+    'OPSMATE-6M': {plan:'business', dur:'6-Month'},
+    'OPSMATE-1Y': {plan:'business', dur:'1-Year'}
+  };
+  if(validCodes[code]){
+    activatePlan(validCodes[code].plan, validCodes[code].dur);
+    renderSettings();
+  } else {
+    showToast('Invalid activation code. Please check and try again.','error');
+  }
 }
 
 function saveGeneralSettings(){
