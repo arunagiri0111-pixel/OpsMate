@@ -3,7 +3,7 @@
 // Strategy: Network-first with cache fallback (stale-while-revalidate)
 // ================================================================
 
-var CACHE_NAME = 'opsmate-v6';
+var CACHE_NAME = 'opsmate-v8';
 
 // Files to pre-cache on install
 var PRECACHE_URLS = [
@@ -30,9 +30,9 @@ self.addEventListener('install', function(event) {
   );
 });
 
-// ── Activate: clean old caches, take control ──
+// ── Activate: clean old caches, take control, FORCE RELOAD all tabs ──
 self.addEventListener('activate', function(event) {
-  console.log('[SW] Activating...');
+  console.log('[SW] Activating v7...');
   event.waitUntil(
     caches.keys().then(function(names) {
       return Promise.all(
@@ -44,6 +44,13 @@ self.addEventListener('activate', function(event) {
       );
     }).then(function() {
       return self.clients.claim(); // Take control of all pages immediately
+    }).then(function() {
+      // ★ FORCE all open tabs to reload so they get the new HTML
+      return self.clients.matchAll({type: 'window'}).then(function(clients) {
+        clients.forEach(function(client) {
+          client.postMessage({type: 'SW_UPDATED', version: CACHE_NAME});
+        });
+      });
     })
   );
 });
